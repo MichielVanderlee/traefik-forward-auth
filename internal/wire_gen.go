@@ -31,6 +31,8 @@ func setupProvider(c Config) (provider.AuthProvider, error) {
 		return setupGoogle(c), nil
 	case AzureAD:
 		return setupAzure(c), nil
+	case Auth0:
+		return setupAuth0(c), nil
 	default:
 		return nil, errors.New("Bad Auth provider")
 	}
@@ -79,6 +81,30 @@ func setupAzure(c Config) *provider.Azure {
 			Scheme: "https",
 			Host:   "login.microsoftonline.com",
 			Path:   fmt.Sprintf("/%s/openid/userinfo", c.TenantID),
+		},
+	}
+}
+
+func setupAuth0(c Config) *provider.Auth0 {
+	return &provider.Auth0{
+		ClientID:     c.ClientID,
+		ClientSecret: c.ClientSecret,
+		Prompt:       c.Prompt,
+		Scope:        "email openid",
+		LoginURL: &url.URL{
+			Scheme: "https",
+			Host:   c.IDServiceDomain,
+			Path:   "/authorize",
+		},
+		TokenURL: &url.URL{
+			Scheme: "https",
+			Host:   c.IDServiceDomain,
+			Path:   "/oauth/token",
+		},
+		UserURL: &url.URL{
+			Scheme: "https",
+			Host:   c.IDServiceDomain,
+			Path:   "/userinfo",
 		},
 	}
 }

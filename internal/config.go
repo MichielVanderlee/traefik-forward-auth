@@ -21,6 +21,7 @@ type identityService string
 const (
 	GoogleAuth identityService = "GoogleAuth"
 	AzureAD    identityService = "AzureAD"
+	Auth0    identityService = "Auth0"
 )
 
 var config Config
@@ -42,7 +43,8 @@ type Config struct {
 	SecretString   string               `long:"secret" env:"SECRET" description:"Secret used for signing (required)" json:"-"`
 	Whitelist      CommaSeparatedList   `long:"whitelist" env:"WHITELIST" description:"Only allow given email addresses, can be set multiple times"`
 
-	IDService    identityService `long:"id-service" env:"ID_SERVICE" default:"GoogleAuth" description:"Name of the Auth Provider: Google, AzureAD"`
+	IDService    identityService `long:"id-service" env:"ID_SERVICE" default:"GoogleAuth" description:"Name of the Auth Provider: Google, AzureAD, Auth0"`
+	IDServiceDomain	string		 `long:"id-service-domain" env:"ID_SERVICE_DOMAIN" description:"Domain to authenticate against, required for Auth0"`
 	ClientID     string          `long:"client-id" env:"CLIENT_ID" description:"Client ID"`
 	ClientSecret string          `long:"client-secret" env:"CLIENT_SECRET" description:"Client Secret" json:"-"`
 	Prompt       string          `long:"prompt" env:"PROMPT" description:"Space separated list of OpenID prompt options"`
@@ -208,6 +210,10 @@ func (c *Config) Validate() {
 
 	if c.IDService == AzureAD && c.TenantID == "" {
 		log.Fatal("Tenant ID is required for Azure")
+	}
+
+	if c.IDService == Auth0 && c.IDServiceDomain == "" {
+		log.Fatal("ID Service Domain is required for Azure")
 	}
 
 	// Check rules
